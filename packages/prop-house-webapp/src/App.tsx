@@ -2,9 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../src/css/globals.css';
 import { Suspense, useEffect, useState } from 'react';
-import NavBar from './components/NavBar';
 import CreateProp from './pages/CreateProp';
-import Footer from './components/Footer';
 import './App.css';
 import LoadingIndicator from './components/LoadingIndicator';
 import NotFound from './components/NotFound';
@@ -16,12 +14,7 @@ import Proposal from './pages/Proposal';
 import { createConfig, configureChains, WagmiConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import {
-  connectorsForWallets,
-  getDefaultWallets,
-  lightTheme,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
+import { connectorsForWallets, getDefaultWallets } from '@rainbow-me/rainbowkit';
 import { PropHouseProvider, ipfs } from '@prophouse/sdk-react';
 import '@rainbow-me/rainbowkit/styles.css';
 import CreateRound from './pages/CreateRound';
@@ -108,42 +101,29 @@ function App() {
               <Route path="/house/:address/card" element={<OpenGraphHouseCard />} />
             </Routes>
           ) : (
-            <RainbowKitProvider
-              chains={chains}
-              theme={lightTheme({
-                accentColor: 'var(--brand-purple)',
-              })}
-              initialChain={mainnet}
-            >
-              <Suspense fallback={<LoadingIndicator />}>
-                <div
-                  className={clsx(bgColorFor(BgColorElement.Home, location.pathname), 'wrapper')}
-                >
-                  <NavBar />
-                  <Routes>
-                    <Route
-                      path="/"
-                      element={showMakeAppHomePage === 'yes' ? <MainApp /> : <Home />}
-                    />
-                    <Route path="/app" element={<MainApp />} />
-                    <Route path="/:roundOrHouse" element={<RoundOrHouseRouter />} />
-                    <Route path="/manage/round/:address" element={<RoundManager />} />
-                    <Route path="/manage/house/:address" element={<HouseManager />} />
-                    <Route path="/:round/:id" element={<Proposal />} />
-                    <Route
-                      path="/create-prop"
-                      element={showCreatePropPage ? <CreateProp /> : <MainApp />}
-                    />
-                    <Route path="/create-round" element={<CreateRound />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/houses" element={<Communities />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-
-                  <Footer />
-                </div>
-              </Suspense>
-            </RainbowKitProvider>
+            <Suspense fallback={<LoadingIndicator />}>
+              <div className={clsx(bgColorFor(BgColorElement.Home, location.pathname), 'wrapper')}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={showMakeAppHomePage === 'yes' ? <MainApp /> : <Home />}
+                  />
+                  <Route path="/app" element={<MainApp />} />
+                  <Route path="/:roundOrHouse" element={<RoundOrHouseRouter />} />
+                  <Route path="/manage/round/:address" element={<RoundManager />} />
+                  <Route path="/manage/house/:address" element={<HouseManager />} />
+                  <Route path="/:round/:id" element={<Proposal />} />
+                  <Route
+                    path="/create-prop"
+                    element={showCreatePropPage ? <CreateProp /> : <MainApp />}
+                  />
+                  <Route path="/create-round" element={<CreateRound />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/houses" element={<Communities />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </Suspense>
           )}
         </PropHouseProvider>
       </WagmiConfig>

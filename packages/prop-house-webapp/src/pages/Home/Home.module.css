@@ -18,12 +18,18 @@
 .headerRow {
   height: 75vh;
 }
+.cont {
+  text-align: center;
+}
 .title {
-  font-size: 40px;
+  font-size: 36px;
   font-weight: bold;
 }
 .subtitle {
-  font-size: 18px;
+  font-size: 20px;
+}
+.link {
+  text-decoration: underline !important;
 }
 
 .headerRow .title {
