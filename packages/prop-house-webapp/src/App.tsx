@@ -35,7 +35,6 @@ import Home from './pages/Home';
 import HouseManager from './pages/HouseManager';
 import { useAppSelector } from './hooks';
 import mixpanel from 'mixpanel-browser';
-import Banner from './components/Banner';
 
 // Override default IPFS gateway
 (ipfs.getUrl as Function) = (uri: string, gateway = 'ipfs.io') => {
