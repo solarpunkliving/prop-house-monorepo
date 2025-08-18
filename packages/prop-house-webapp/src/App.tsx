@@ -120,23 +120,6 @@ function App() {
                 <div
                   className={clsx(bgColorFor(BgColorElement.Home, location.pathname), 'wrapper')}
                 >
-                  <Banner
-                    content={
-                      <div>
-                        Prop House will begin sunsetting starting June 1st, 2024.{' '}
-                        <a
-                          href={
-                            'https://mirror.xyz/seneca.eth/tmgZJiD3JeOaul-N-8_ImtxtM2UJT4HPtq_XJCIkhj0'
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Learn more
-                        </a>
-                        .
-                      </div>
-                    }
-                  />
                   <NavBar />
                   <Routes>
                     <Route

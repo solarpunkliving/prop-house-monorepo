@@ -6032,6 +6032,37 @@
   dependencies:
     "@prophouse/sdk" "1.0.40"
 
+"@prophouse/sdk@1.0.38":
+  version "1.0.38"
+  resolved "https://registry.yarnpkg.com/@prophouse/sdk/-/sdk-1.0.38.tgz#93ec881fdbeb3afd6091cfceda2de0e5d0376102"
+  integrity sha512-aiS4DX2Yx/hWTMsYSOKl17m0h3mPc0U0kw4wCJM4RXD8ALInmewOB5a63a8KpGYpTx5CWzPTR1V8mcnYM6KoeQ==
+  dependencies:
+    "@ethereumjs/block" "5.2.0"
+    "@ethereumjs/common" "4.3.0"
+    "@ethersproject/abi" "~5.7.0"
+    "@ethersproject/abstract-provider" "~5.7.0"
+    "@ethersproject/abstract-signer" "~5.7.0"
+    "@ethersproject/address" "~5.7.0"
+    "@ethersproject/bignumber" "~5.7.0"
+    "@ethersproject/bytes" "~5.7.0"
+    "@ethersproject/constants" "~5.7.0"
+    "@ethersproject/contracts" "~5.7.0"
+    "@ethersproject/keccak256" "~5.7.0"
+    "@ethersproject/providers" "~5.7.0"
+    "@ethersproject/solidity" "~5.7.0"
+    "@ethersproject/strings" "~5.7.0"
+    "@ethersproject/wallet" "^5.7.0"
+    "@pinata/sdk" "^2.1.0"
+    "@prophouse/protocol" "1.0.12"
+    bn.js "^5.2.1"
+    graphql "^16.5.0"
+    graphql-request "5.0.0"
+    merkletreejs "^0.3.11"
+    micro-starknet "^0.2.3"
+    randombytes "^2.1.0"
+    starknet "5.19.5"
+    time-ts "^0.1.0"
+
 "@prophouse/sdk@1.0.40":
   version "1.0.40"
   resolved "https://registry.npmjs.org/@prophouse/sdk/-/sdk-1.0.40.tgz#a164c159f50c5eaac95af30e3049c690ecbd8ca2"
