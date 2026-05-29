@@ -18,10 +18,28 @@ contract Round is ERC721, ERC1155 {
     uint254 public totalDeposited;
     mapping(address => uint256) public depositTotals;
 
+    struct Proposal {
+        address proposer;
+        string title;
+        string description;
+        uint256 createdAt;
+        bool executed;
+    }
+
+    enum VotingStrategy { OnePerWallet, OnePerToken, Quadratic }
+    VotingStrategy public votingStrategy;
+
+    uint256 public proposalCount;
+    mapping(uint256 => Proposal) public proposals;
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
+    mapping(uint256 => uint256) public voteCounts;
+
     event Deposited(address indexed depositor, AssetController.Asset asset);
     event Reclaimed(address indexed claimant, AssetController.Asset asset);
     event Finalized();
     event Cancelled();
+    event ProposalCreated(uint256 indexed proposalId, address indexed proposer);
+    event Voted(uint256 indexed proposalId, address indexed voter);
 
     modifier onlyManager() {
         require(msg.sender == manager, "NOT_MANAGER");
@@ -36,12 +54,14 @@ contract Round is ERC721, ERC1155 {
     constructor(
         address _house,
         string memory _title,
-        address _manager
+        address _manager,
+        VotingStrategy _votingStrategy
     ) ERC1155("lilrounds://receipt") {
         house = _house;
         title = _title;
         manager = _manager;
         status = Status.Active;
+        votingStrategy = _votingStrategy;
     }
 
     function depositETH() external payable onlyHouseContract {
@@ -107,6 +127,52 @@ contract Round is ERC721, ERC1155 {
         emit Reclaimed(msg.sender, AssetController.Asset(address(0), token, amount));
     }
 
+    function createProposal(
+        string calldata _title,
+        string calldata _description
+    ) external onlyHouseContract {
+        require(status == Status.Active, "NOT_ACTIVE");
+
+        uint256 proposalId = proposalCount++;
+        proposals[proposalId] = Proposal({
+            proposer: msg.sender,
+            title: _title,
+            description: _description,
+            createdAt: block.timestamp,
+            executed: false
+        });
+
+        emit ProposalCreated(proposalId, msg.sender);
+    }
+
+    function vote(uint256 proposalId) external {
+        require(status == Status.Active, "NOT_ACTIVE");
+        require(!hasVoted[proposalId][msg.sender], "ALREADY_VOTED");
+
+        if (votingStrategy == VotingStrategy.OnePerWallet) {
+            hasVoted[proposalId][msg.sender] = true;
+            voteCounts[proposalId]++;
+        } else if (votingStrategy == VotingStrategy.OnePerToken) {
+            uint256 tokens = balanceOf(msg.sender, uint160(address(this)));
+            require(tokens > 0, "NO_TOKENS");
+            hasVoted[proposalId][msg.sender] = true;
+            voteCounts[proposalId] += tokens;
+        } else if (votingStrategy == VotingStrategy.Quadratic) {
+            uint256 tokens = balanceOf(msg.sender, uint160(address(this)));
+            require(tokens > 0, "NO_TOKENS");
+            hasVoted[proposalId][msg.sender] = true;
+            voteCounts[proposalId] += _quadratic(tokens);
+        }
+
+        emit Voted(proposalId, msg.sender);
+    }
+
+    function getProposal(
+        uint256 proposalId
+    ) external view returns (Proposal memory) {
+        return proposals[proposalId];
+    }
+
     function finalize() external onlyManager {
         require(status == Status.Active, "NOT_ACTIVE");
         status = Status.Finalized;
@@ -130,6 +196,23 @@ contract Round is ERC721, ERC1155 {
 
     function _getTokenReceiptId(address token) internal pure returns (uint256) {
         return uint160(token);
+    }
+
+    function _quadratic(uint256 amount) internal pure returns (uint256) {
+        return sqrt(amount);
+    }
+
+    function sqrt(uint256 x) internal pure returns (uint256 y) {
+        if (x > 3) {
+            y = x;
+            uint256 z = (x + 1) / 2;
+            while (z < y) {
+                y = z;
+                z = (x / z + z) / 2;
+            }
+        } else if (x != 0) {
+            y = 1;
+        }
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC1155) returns (bool) {

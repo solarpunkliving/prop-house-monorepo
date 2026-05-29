@@ -24,7 +24,7 @@ contract RoundTest is Test {
 
     function setUp() public {
         token = new MockToken();
-        round = new Round(house, "Test Round", manager);
+        round = new Round(house, "Test Round", manager, Round.VotingStrategy.OnePerWallet);
     }
 
     function testInitialState() public view {
@@ -32,6 +32,7 @@ contract RoundTest is Test {
         assertEq(round.title(), "Test Round");
         assertEq(round.manager(), manager);
         assertEq(round.house(), house);
+        assertEq(uint8(round.votingStrategy()), uint8(Round.VotingStrategy.OnePerWallet));
     }
 
     function testDepositETH() public {
@@ -178,5 +179,134 @@ contract RoundTest is Test {
 
         assertEq(address(round).balance, 1 ether);
         assertEq(token.balanceOf(address(round)), 500);
+    }
+
+    function testCreateProposal() public {
+        vm.expectEmit(true, true, false, false);
+        emit Round.ProposalCreated(0, house);
+
+        vm.prank(house);
+        round.createProposal("Test Proposal", "Description here");
+
+        assertEq(round.proposalCount(), 1);
+        (address proposer, string memory title, , uint256 createdAt, ) = round.getProposal(0);
+        assertEq(proposer, house);
+        assertEq(title, "Test Proposal");
+        assertTrue(createdAt > 0);
+    }
+
+    function testCannotCreateProposalWhenNotActive() public {
+        vm.prank(manager);
+        round.finalize();
+
+        vm.prank(house);
+        vm.expectRevert("NOT_ACTIVE");
+        round.createProposal("Late Proposal", "Too late");
+    }
+
+    function testOnlyHouseCanCreateProposal() public {
+        vm.prank(alice);
+        vm.expectRevert("NOT_HOUSE");
+        round.createProposal("Unauthorized", "Nope");
+    }
+
+    function testVoteOnePerWallet() public {
+        vm.prank(house);
+        round.createProposal("Test Proposal", "Description");
+
+        vm.prank(alice);
+        round.vote(0);
+
+        assertEq(round.voteCounts(0), 1);
+        assertTrue(round.hasVoted(0, alice));
+    }
+
+    function testCannotVoteTwice() public {
+        vm.prank(house);
+        round.createProposal("Test Proposal", "Description");
+
+        vm.prank(alice);
+        round.vote(0);
+
+        vm.prank(alice);
+        vm.expectRevert("ALREADY_VOTED");
+        round.vote(0);
+    }
+
+    function testVoteOnePerToken() public {
+        Round tokenRound = new Round(house, "Token Round", manager, Round.VotingStrategy.OnePerToken);
+
+        token.mint(alice, 100);
+        vm.prank(alice);
+        token.approve(address(tokenRound), 100);
+
+        vm.prank(house);
+        tokenRound.depositERC20(address(token), 100);
+
+        vm.prank(house);
+        tokenRound.createProposal("Token Proposal", "Description");
+
+        vm.prank(alice);
+        tokenRound.vote(0);
+
+        assertEq(tokenRound.voteCounts(0), 100);
+    }
+
+    function testVoteQuadratic() public {
+        Round quadRound = new Round(house, "Quad Round", manager, Round.VotingStrategy.Quadratic);
+
+        token.mint(alice, 100);
+        vm.prank(alice);
+        token.approve(address(quadRound), 100);
+
+        vm.prank(house);
+        quadRound.depositERC20(address(token), 100);
+
+        vm.prank(house);
+        quadRound.createProposal("Quad Proposal", "Description");
+
+        vm.prank(alice);
+        quadRound.vote(0);
+
+        assertEq(quadRound.voteCounts(0), 10);
+    }
+
+    function testCannotVoteWithoutTokens() public {
+        Round tokenRound = new Round(house, "Token Round", manager, Round.VotingStrategy.OnePerToken);
+
+        vm.prank(house);
+        tokenRound.createProposal("Token Proposal", "Description");
+
+        vm.prank(alice);
+        vm.expectRevert("NO_TOKENS");
+        tokenRound.vote(0);
+    }
+
+    function testMultipleProposals() public {
+        vm.prank(house);
+        round.createProposal("First", "Desc 1");
+
+        vm.prank(house);
+        round.createProposal("Second", "Desc 2");
+
+        assertEq(round.proposalCount(), 2);
+
+        (, string memory title1, , , ) = round.getProposal(0);
+        (, string memory title2, , , ) = round.getProposal(1);
+
+        assertEq(title1, "First");
+        assertEq(title2, "Second");
+    }
+
+    function testCannotVoteWhenNotActive() public {
+        vm.prank(house);
+        round.createProposal("Test Proposal", "Description");
+
+        vm.prank(manager);
+        round.finalize();
+
+        vm.prank(alice);
+        vm.expectRevert("NOT_ACTIVE");
+        round.vote(0);
     }
 }

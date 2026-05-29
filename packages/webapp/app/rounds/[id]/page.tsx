@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { ProposalList } from "@/components/ProposalCard";
+import { SubmitProposalModal } from "@/components/SubmitProposalModal";
 
 interface RoundParams {
   params: Promise<{ id: string }>;
@@ -14,6 +17,8 @@ const STATUS_COLORS = {
 };
 
 export default function RoundDetailPage({ params }: RoundParams) {
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Header />
@@ -41,25 +46,18 @@ export default function RoundDetailPage({ params }: RoundParams) {
             </div>
 
             <div className="border border-gray-800 rounded-xl p-6 bg-gray-900/50">
-              <h2 className="text-lg font-semibold text-white mb-4">Submissions</h2>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center justify-between p-4 border border-gray-800 rounded-lg bg-black/50">
-                    <div>
-                      <h3 className="font-medium text-white">Deck Design #{i}</h3>
-                      <p className="text-sm text-gray-400 mt-1">by 0x{i}23...{i}78</p>
-                    </div>
-                    <button className="px-3 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg text-sm transition-colors">
-                      Vote
-                    </button>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Proposals</h2>
+                <button
+                  onClick={() => setIsSubmitOpen(true)}
+                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  + Submit Proposal
+                </button>
               </div>
-            </div>
 
-            <button className="w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-white font-medium transition-colors">
-              Submit Your Entry
-            </button>
+              <ProposalList />
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -99,6 +97,8 @@ export default function RoundDetailPage({ params }: RoundParams) {
           </div>
         </div>
       </main>
+
+      <SubmitProposalModal isOpen={isSubmitOpen} onClose={() => setIsSubmitOpen(false)} />
     </div>
   );
 }
